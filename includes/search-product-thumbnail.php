@@ -526,6 +526,13 @@ class Search_Product_thumbnail
             $file_base = sanitize_file_name( get_the_title( $post_id ) . '-featured-' . time() );
         }
 
+        // نام فایل همیشه lowercase می‌شود و فاصله‌های متوالی به یک خط تیره تبدیل می‌شوند.
+        $file_base = preg_replace( '/\s+/u', '-', trim( $file_base ) );
+        $file_base = function_exists( 'mb_strtolower' )
+            ? mb_strtolower( $file_base, 'UTF-8' )
+            : strtolower( $file_base );
+        $file_base = sanitize_file_name( trim( $file_base, '.-_ ' ) );
+
         if ( '' === $file_base ) {
             $file_base = 'product-' . $post_id . '-featured-' . time();
         }
@@ -1148,6 +1155,9 @@ class Search_Product_thumbnail
                                 var btn = $(this);
                                 var url = btn.data('url');
                                 var originalText = btn.text();
+                                var filenameField = $('#featured_image_filename');
+                                var fileName = (filenameField.val() || '').trim().replace(/\s+/g, '-').toLowerCase();
+                                filenameField.val(fileName);
                                 
                                 btn.text('⏳ در حال دانلود و واترمارک...').prop('disabled', true);
                                 
@@ -1158,7 +1168,7 @@ class Search_Product_thumbnail
                                         action: 'set_ai_featured_image',
                                         security: $('#ai_image_search_nonce_field').val(),
                                         image_url: url,
-                                        image_filename: ($('#featured_image_filename').val() || '').trim(),
+                                        image_filename: fileName,
                                         post_id: <?php echo esc_js( $post_id ); ?>
                                     },
                                     success: function(res) {
