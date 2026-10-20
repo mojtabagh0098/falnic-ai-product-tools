@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: AI Product Content Generator
+ * Plugin Name: Falnic AI Product Tools
  * Plugin URI:  https://falnic.com
  * Description: افزونه تولید محتوا با AI برای محصولات ووکامرس (نسخه اصلاح‌شده با پاکسازی خودکار تگ h1 و کدهای اضافی مارک‌داون).
  * Version:     1.4
  * Author:      Mojtaba Ghazi Nejad
  * Author URI:  https://falnic.com
- * Text Domain: ai-product-content-generator
+ * Text Domain: falnic-ai-product-tools
  */
 
 if (!defined('ABSPATH')) exit;

@@ -3,7 +3,9 @@ class Search_Product_thumbnail
 {
     // در صورت نیاز به استفاده از پروکسی برای دانلود تصاویر، مقدار true قرار دهید
     private $use_proxy_for_download = true;
-    private $proxy = '85.198.17.216:8888';
+    private $proxy = '46.249.103.44:8888';
+
+    private $proxy_auth = 'myuser:mypass';
 
     public function __construct()
     {
@@ -48,23 +50,25 @@ class Search_Product_thumbnail
 
         $attempt_download = function( $with_proxy ) use ( $url, $temp_file, $headers ) {
             $fp = fopen( $temp_file, 'w+' );
-            $ch = curl_init( $url );
+            
+            // اگر نیاز به پروکسی بود، URL تغییر می‌کند
+            $target_url = $url;
+            if ( $with_proxy ) {
+                // آدرس فایل PHP روی سرور خارج خودتان را بگذارید
+                $target_url = 'https://proxy.falnic.com/proxy.php?token=OToBdvgjDESwtJiF87kiw8XHq2uQDog8oErDrss3a0PHTXRqD8iYbFOflywyp8El&url=' . urlencode($url);
+            }
+
+            $ch = curl_init( $target_url );
 
             curl_setopt_array( $ch, [
                 CURLOPT_FILE           => $fp,
-                CURLOPT_TIMEOUT        => 25,
-                CURLOPT_CONNECTTIMEOUT => 10,
+                CURLOPT_TIMEOUT        => 35, // کمی بیشتر به خاطر واسط بودن
+                CURLOPT_CONNECTTIMEOUT => 15,
                 CURLOPT_HTTPHEADER     => $headers,
                 CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_MAXREDIRS      => 5,
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_SSL_VERIFYHOST => false,
-                CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4, // جلوگیری از معلق ماندن روی IPv6
             ]);
-
-            if ( $with_proxy && !empty($this->proxy) ) {
-                curl_setopt( $ch, CURLOPT_PROXY, $this->proxy );
-            }
 
             curl_exec( $ch );
             $http_code = curl_getinfo( $ch, CURLINFO_HTTP_CODE );
@@ -379,7 +383,8 @@ class Search_Product_thumbnail
             $debug_info['used_api'] = 'Serper.dev';
             $payload = json_encode([ 'q' => $query, 'gl' => 'us', 'hl' => 'en' ]);
             
-            $ch = curl_init('https://google.serper.dev/images');
+            $proxy_url = 'https://proxy.falnic.com/proxy.php?token=OToBdvgjDESwtJiF87kiw8XHq2uQDog8oErDrss3a0PHTXRqD8iYbFOflywyp8El&url=' . urlencode('https://google.serper.dev/images');
+            $ch = curl_init($proxy_url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
@@ -388,7 +393,7 @@ class Search_Product_thumbnail
                 'Content-Type: application/json'
             ]);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            curl_setopt($ch, CURLOPT_PROXY, $proxy);
+
 
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -417,12 +422,12 @@ class Search_Product_thumbnail
 
         $fetch_from_serpstack = function( $query ) use ( $serpstack_api_key, $proxy, &$debug_info ) {
             $debug_info['used_api'] = 'SerpStack';
-            $url = 'http://api.serpstack.com/search?access_key=' . $serpstack_api_key . '&query=' . urlencode($query) . '&type=images';
+            $api_url = 'http://api.serpstack.com/search?access_key=' . $serpstack_api_key . '&query=' . urlencode($query) . '&type=images';
+            $proxy_url = 'https://proxy.falnic.com/proxy.php?token=OToBdvgjDESwtJiF87kiw8XHq2uQDog8oErDrss3a0PHTXRqD8iYbFOflywyp8El&url=' . urlencode($api_url);
             
-            $ch = curl_init($url);
+            $ch = curl_init($proxy_url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            curl_setopt($ch, CURLOPT_PROXY, $proxy);
 
             $response = curl_exec($ch);
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
